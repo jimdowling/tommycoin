@@ -13,6 +13,4 @@ return [
     'key'             => env('APP_KEY'),
     'previous_keys'   => [],
     'maintenance'     => ['driver' => 'file'],
-    'providers'       => \Illuminate\Support\ServiceProvider::defaultProviders()->toArray(),
-    'aliases'         => \Illuminate\Foundation\AliasLoader::getInstance()->getAliases(),
 ];

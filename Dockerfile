@@ -32,11 +32,13 @@ RUN mkdir -p \
     bootstrap/cache \
     database
 
-# Install dependencies (no lock file needed — composer will resolve)
-RUN composer install --no-dev --no-interaction --no-scripts
+# Install dependencies with scripts so package:discover runs
+RUN composer install --no-dev --no-interaction
 
 # Setup .env and generate app key
-RUN cp .env.example .env && php artisan key:generate --force
+RUN cp .env.example .env \
+    && php artisan key:generate --force \
+    && php artisan package:discover --ansi
 
 # Create SQLite database
 RUN touch database/database.sqlite
