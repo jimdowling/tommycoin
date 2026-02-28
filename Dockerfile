@@ -50,6 +50,9 @@ RUN chown -R www-data:www-data /var/www/html \
 # Nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
+# PHP-FPM pool config (passes env vars through, logs errors to stderr)
+COPY docker/fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
+
 EXPOSE 8000
 
 # Start script
