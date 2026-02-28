@@ -1,14 +1,13 @@
 #!/bin/sh
 set -e
 
-# Run migrations (safe with SQLite)
-php artisan migrate --force
+cd /var/www/html
 
-# Optimise
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Clear and rebuild caches at runtime (so APP_KEY env var is available)
+php artisan config:clear
+php artisan view:clear
+php artisan route:clear
 
-# Start PHP-FPM in background, then nginx in foreground
+# Start PHP-FPM in background, then Nginx in foreground
 php-fpm -D
-nginx -g "daemon off;"
+exec nginx -g "daemon off;"

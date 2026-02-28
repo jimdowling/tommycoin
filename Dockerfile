@@ -9,35 +9,41 @@ RUN apk add --no-cache \
     zip \
     unzip \
     sqlite \
-    sqlite-dev
+    sqlite-dev \
+    oniguruma-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_sqlite zip gd
+RUN docker-php-ext-install pdo pdo_sqlite zip gd mbstring
 
 # Install Composer
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy composer files first for layer caching
-COPY composer.json composer.lock* ./
-
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy the rest of the application
+# Copy application files
 COPY . .
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+# Create all required Laravel directories
+RUN mkdir -p \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache/data \
+    storage/logs \
+    bootstrap/cache \
+    database
 
-# Setup .env
+# Install dependencies (no lock file needed — composer will resolve)
+RUN composer install --no-dev --no-interaction --no-scripts
+
+# Setup .env and generate app key
 RUN cp .env.example .env && php artisan key:generate --force
 
 # Create SQLite database
-RUN touch /var/www/html/database/database.sqlite
-RUN chown www-data:www-data /var/www/html/database/database.sqlite
+RUN touch database/database.sqlite
+
+# Fix permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
